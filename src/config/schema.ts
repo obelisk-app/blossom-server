@@ -88,6 +88,12 @@ const StorageSchema = z.object({
       "Ordered list of retention rules. Rules are evaluated in order; the first matching rule governs a blob's expiry. " +
         "Rules also act as an upload allowlist: blobs whose MIME type matches no rule are rejected with 415.",
     ),
+  sandboxBlobs: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Serve blobs with `Content-Security-Policy: default-src 'none'; sandbox` and `X-Content-Type-Options: nosniff`, so an uploaded HTML/SVG/JS file can never run as a page on this server's origin (phishing, script on your domain). Clients that fetch() or <img>/<video> the blob are unaffected. Recommended for any server that accepts arbitrary MIME types.",
+    ),
   removeWhenNoOwners: z
     .boolean()
     .default(false)

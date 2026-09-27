@@ -76,6 +76,10 @@ storage:
   #   # Must have enough free space for the largest expected upload.
   #   # tmpDir: ./data/s3-tmp
 
+  # Serve blobs with CSP sandbox + nosniff so an uploaded HTML/SVG/JS file can't
+  # run as a page on this origin. Recommended when rules accept any MIME type.
+  sandboxBlobs: false
+
   # When true, blobs with no owners are removed on each prune cycle,
   # regardless of expiry rules.
   removeWhenNoOwners: false

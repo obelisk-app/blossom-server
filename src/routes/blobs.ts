@@ -25,7 +25,7 @@ const SHA256_RE = /^[0-9a-f]{64}$/;
 export function buildBlobsRouter(
   db: Client,
   storage: IBlobStorage,
-  _config: Config,
+  config: Config,
 ): Hono<{ Variables: BlossomVariables }> {
   const app = new Hono<{ Variables: BlossomVariables }>();
 
@@ -75,6 +75,10 @@ export function buildBlobsRouter(
       ETag: `"${hash}"`,
       "Last-Modified": new Date(blob.uploaded * 1000).toUTCString(),
     };
+    if (config.storage.sandboxBlobs) {
+      headers["Content-Security-Policy"] = "default-src 'none'; sandbox";
+      headers["X-Content-Type-Options"] = "nosniff";
+    }
 
     // Conditional request: If-None-Match (RFC 9110 §13.1.2)
     // The SHA-256 hash is a perfect ETag — content-addressed, immutable, already computed.

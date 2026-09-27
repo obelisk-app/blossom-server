@@ -5,6 +5,7 @@
 ### Minor Changes
 
 - Add `pubkeysFile` to storage rules: a hot-reloaded file of hex pubkeys, so a large or frequently-changing uploader list (e.g. a web-of-trust sync) doesn't live in config.yml or need a restart. A missing file counts as empty (fail closed). Pruning filters owners of file-scoped rules in memory, since such lists can exceed SQLite's bound-parameter limit.
+- Add `storage.sandboxBlobs` (default off): serve blobs with `Content-Security-Policy: default-src 'none'; sandbox` and `X-Content-Type-Options: nosniff`, so an uploaded HTML/SVG/JS file can't run as a page on the server's origin.
 
 ## 6.3.1
 
