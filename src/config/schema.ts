@@ -17,6 +17,12 @@ export const StorageRuleSchema = z.object({
     .describe(
       "Optional list of Nostr pubkeys (hex) this rule applies to. When set, only blobs uploaded by one of these pubkeys are matched.",
     ),
+  pubkeysFile: z
+    .string()
+    .optional()
+    .describe(
+      "Optional path to a text file of hex pubkeys (one per line, # comments) this rule applies to, in addition to `pubkeys`. Re-read whenever the file changes, so another process (e.g. a web-of-trust sync) can maintain it without a restart. A missing file counts as empty: the rule then matches nobody.",
+    ),
 });
 
 const LocalStorageSchema = z.object({

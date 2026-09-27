@@ -347,6 +347,39 @@ export interface BlobPruneRecord extends BlobRecord {
  * @param typePattern  SQL LIKE pattern (e.g. "image/%", "%"). Use mimeToSqlLike() to derive this.
  * @param pubkeys      If provided, only blobs owned by one of these pubkeys are returned.
  */
+/**
+ * Like getBlobsForPrune, but returns every owner of each matching blob instead
+ * of filtering by pubkey in SQL. Used for rules with a `pubkeysFile`, whose
+ * list can hold tens of thousands of keys — past SQLite's bound-parameter
+ * limit — so the caller filters owners in memory.
+ */
+export async function getBlobsForPruneWithOwners(
+  db: Client,
+  typePattern: string,
+): Promise<(BlobPruneRecord & { owner: string })[]> {
+  const rs = await db.execute({
+    sql: `
+      SELECT b.sha256, b.size, b.type, b.uploaded, b.nip94, a.timestamp AS accessed, o.pubkey
+      FROM blobs b
+      JOIN owners o ON o.blob = b.sha256
+      LEFT JOIN accessed a ON a.blob = b.sha256
+      LEFT JOIN media_thumbnails mt ON mt.thumbnail_sha256 = b.sha256
+      WHERE b.type LIKE ?
+        AND mt.thumbnail_sha256 IS NULL
+    `,
+    args: [typePattern],
+  });
+  return rs.rows.map((row) => ({
+    sha256: row[0] as string,
+    size: row[1] as number,
+    type: row[2] as string | null,
+    uploaded: row[3] as number,
+    nip94: parseNip94(row[4]),
+    accessed: row[5] as number | null,
+    owner: row[6] as string,
+  }));
+}
+
 export async function getBlobsForPrune(
   db: Client,
   typePattern: string,

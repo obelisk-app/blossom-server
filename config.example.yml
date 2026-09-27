@@ -93,6 +93,11 @@ storage:
   #               Human-readable duration: "7 days", "1 month", "24 hours".
   #   pubkeys     Optional list of uploader Nostr pubkeys (hex) this rule applies to.
   #               When set, only blobs from these pubkeys are matched by this rule.
+  #   pubkeysFile Optional path to a text file of hex pubkeys (one per line, "#"
+  #               comments). Combined with `pubkeys`. Re-read when the file changes,
+  #               so another process (a web-of-trust sync, an invite bot) can keep
+  #               it current without a restart. Replace it atomically (write +
+  #               rename). A missing file counts as empty: the rule matches nobody.
   rules:
     - type: "image/*"
       expiration: 1 month
@@ -111,6 +116,16 @@ storage:
   #     expiration: 1 month
   #   - type: "*"
   #     expiration: 1 week
+  #
+  # Example: web-of-trust tiers from files kept current by an external sync,
+  # with upload.requirePubkeyInRule: true so only listed keys can upload
+  # rules:
+  #   - type: "*"
+  #     expiration: 1 year
+  #     pubkeysFile: ./data/wot/tier1.txt   # reference accounts + their follows
+  #   - type: "*"
+  #     expiration: 1 month
+  #     pubkeysFile: ./data/wot/tier2.txt   # friends of friends
 
 # ---------------------------------------------------------------------------
 # Upload  (BUD-02 / BUD-06)

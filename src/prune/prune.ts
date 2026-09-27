@@ -21,11 +21,13 @@ import type { IBlobStorage } from "../storage/interface.ts";
 import {
   deleteBlob,
   getBlobsForPrune,
+  getBlobsForPruneWithOwners,
   getMediaThumbnailsForParent,
   getOwnerlessBlobSha256s,
 } from "../db/blobs.ts";
 import { mimeToExt } from "../utils/mime.ts";
 import { mimeToSqlLike, parseDuration } from "./rules.ts";
+import { ruleHasPubkey } from "../config/pubkeys-file.ts";
 
 export interface PruneResult {
   /** Total blobs removed (DB row + physical file) this run. */
@@ -71,7 +73,17 @@ export async function pruneStorage(
 
     let rows;
     try {
-      rows = await getBlobsForPrune(db, typePattern, rule.pubkeys);
+      if (rule.pubkeysFile) {
+        // File-backed lists can be huge; filter owners here, not in SQL.
+        const seen = new Set<string>();
+        rows = (await getBlobsForPruneWithOwners(db, typePattern)).filter((r) => {
+          if (seen.has(r.sha256) || !ruleHasPubkey(rule, r.owner)) return false;
+          seen.add(r.sha256);
+          return true;
+        });
+      } else {
+        rows = await getBlobsForPrune(db, typePattern, rule.pubkeys);
+      }
     } catch (err) {
       console.warn(
         `[prune] Failed to query blobs for rule type="${rule.type}":`,

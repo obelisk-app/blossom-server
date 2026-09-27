@@ -3,10 +3,12 @@
  *
  * Used at two callsites:
  *   1. Upload time — getFileRule() gates whether a blob is accepted
+ *      (a rule's `pubkeysFile` is the one piece of I/O, cached in pubkeys-file.ts)
  *   2. Prune time  — mimeToSqlLike() + parseDuration() drive expiry queries
  */
 
 import type { StorageRule } from "../config/schema.ts";
+import { ruleHasPubkey, ruleIsPubkeyScoped } from "../config/pubkeys-file.ts";
 
 /** Seconds per named unit. Month = 30 days, year = 365 days. */
 const DURATION_UNITS: Record<string, number> = {
@@ -103,8 +105,8 @@ export function getFileRule(
     // Pubkey scoping: if the rule restricts to specific pubkeys, the uploader
     // must be in that list. If requirePubkeyInRule is set globally, an anonymous
     // uploader (no pubkey) can never satisfy a pubkey-scoped rule.
-    if (rule.pubkeys && rule.pubkeys.length > 0) {
-      if (!pubkey || !rule.pubkeys.includes(pubkey)) {
+    if (ruleIsPubkeyScoped(rule)) {
+      if (!pubkey || !ruleHasPubkey(rule, pubkey)) {
         // If requirePubkeyInRule: only pubkey-scoped rules are valid gates,
         // so we continue searching instead of skipping to an unscoped rule.
         continue;
