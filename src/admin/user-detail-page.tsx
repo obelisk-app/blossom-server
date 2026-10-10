@@ -167,19 +167,23 @@ export const UserDetailPage: FC<UserDetailPageProps> = async (
               </dd>
             </div>
           )}
-          <div>
-            <dt class="text-xs text-gray-500 mb-0.5">Nostr profile</dt>
-            <dd>
-              <a
-                href={`https://njump.me/${npub || pubkey}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-xs text-purple-400 hover:text-purple-300 hover:underline"
-              >
-                View on njump.me ↗
-              </a>
-            </dd>
-          </div>
+          {/* Obelisk's own profile page (obelisk-design: nostr-links.md).
+              /p/ needs an npub; bare hex is read as an event id. */}
+          {npub && (
+            <div>
+              <dt class="text-xs text-gray-500 mb-0.5">Nostr profile</dt>
+              <dd>
+                <a
+                  href={`https://obelisk.ar/p/${npub}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-xs text-purple-400 hover:text-purple-300 hover:underline"
+                >
+                  View on Obelisk ↗
+                </a>
+              </dd>
+            </div>
+          )}
           <div>
             <dt class="text-xs text-gray-500 mb-0.5">Total blobs</dt>
             <dd>
